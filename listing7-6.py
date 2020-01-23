@@ -58,7 +58,7 @@ GAME_MAP = [["Room 0 - where unused objects are kept", 0, 0, False, False]]
 
 outdoor_rooms = range(1, 26)
 for planetsectors in range(1, 26):
-    #rooms 1 to 25 are generated where
+    #rooms 1 to 25 are generated here
     GAME_MAP.append(["The dusty planet surface", 13, 13, True, True])
 
 GAME_MAP += [
@@ -301,7 +301,7 @@ for key, room_scenery_list in scenery.items():
 print(check_counter, "scenery items")
 assert check_counter == 161, "Expected 161 scenery items"
 assert checksum == 200095, "Error in scenery data"
-print("Scenery checksum" + str(checksum))
+print("Scenery checksum " + str(checksum))
 
 for room in range(1, 26): #Add random scenery in planet locations
     if room != 13: #Skip room 13
@@ -478,7 +478,7 @@ def game_loop():
         #start_room()
         return
 
-    if player_x == room_height: #through door on BOTTOM
+    if player_y == room_height: #through door on BOTTOM
         #clock.unscheduled(hazard_move)
         current_room += MAP_WIDTH
         generate_map()
@@ -488,7 +488,7 @@ def game_loop():
         #start_room()
         return
 
-    if player_x == room_width: #through door at TOP
+    if player_y == -1: #through door at TOP
         #clock.unscheduled(hazard_move)
         current_room -= MAP_WIDTH
         generate_map()
@@ -500,7 +500,7 @@ def game_loop():
 
     #If the player is standing somewhere they shouldn't, move them back.
     #Keep the 2 comments below - you'll need them later
-    if room_map[player_y][player_x] not in items_player_may_stand_on: #\
+    if room_map[player_y][player_x] not in items_player_may_stand_on:
     #       or hazard_map[player_y][player_x] != 0:
         player_x = old_player_x
         player_y = old_player_y
@@ -536,8 +536,8 @@ def draw():
             if room_map[y][x] != 255:
                 image_to_draw = objects[room_map[y][x]][0]
                 screen.blit(image_to_draw, #TOD0: investigate this method
-                (top_left_x + (x * 30),
-                top_left_y + (y * 30) - image_to_draw.get_height()))
+                    (top_left_x + (x * 30),
+                    top_left_y + (y * 30) - image_to_draw.get_height()))
             if player_y == y:
                 image_to_draw = PLAYER[player_direction][player_frame]
                 screen.blit(image_to_draw,
