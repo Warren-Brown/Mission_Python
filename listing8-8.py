@@ -438,9 +438,19 @@ def generate_map():
             for tile_number in range(1, image_width_in_tiles):
                 room_map[scenery_y][scenery_x + tile_number] = 255
 
+    center_y = int(HEIGHT / 2) #Center of game window
+    center_x = int(WIDTH / 2)
+    room_pixel_width = room_width * TILE_SIZE #Size of room in pixels
+    room_pixel_height = room_height * TILE_SIZE
+    top_left_x = center_x - 0.5 * room_pixel_width
+    top_left_y = (center_y - 0.5 * room_pixel_height) + 10
+
 #############
 ##GAME LOOP##
 #############
+
+def start_room():
+    show_text("You are here: " + room_name, 0)
 
 def game_loop():
     global player_x, player_y, current_room
@@ -634,9 +644,32 @@ def draw():
 
     screen.surface.set_clip(None)
 
+def adjust_wall_transparency():
+    global wall_transparency_frame
+
+    if (player_y == room_height -2
+        and room_map[room_height -1][player_x] == 1
+        and wall_transparency_frame < 4):
+        wall_transparency_frame += 1 # Fade wall out
+
+    if ((player_y < room_height -2
+            or room_map[room_height - 1][player_x] != 1)
+            and wall_transparency_frame > 0):
+        wall_transparency_frame -= 1 # Fade wall in
+
+def show_text(text_to_show, line_number):
+    if game_over:
+        return
+    text_lines = [15, 50]
+    box = Rect((0, text_lines[line_number]), (800, 35))
+    screen.draw.filled_rect(box, BLACK)
+    screen.draw.text(text_to_show,
+        (20, text_lines[line_number]), color=GREEN)
+
 ###########
 ## START ##
 ###########
 
 clock.schedule_interval(game_loop, 0.03)
+clock.schedule_interval(adjust_wall_transparency, 0.05)
 generate_map()
