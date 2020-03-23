@@ -46,6 +46,40 @@ player_frame = 0
 player_image = PLAYER[player_direction][player_frame]
 player_offset_x, player_offset_y = 0, 0
 
+PLAYER_SHADOW = {
+       "left": [images.spacesuit_left_shadow, images.spacesuit_left_1_shadow,
+                images.spacesuit_left_2_shadow, images.spacesuit_left_3_shadow,
+                images.spacesuit_left_3_shadow
+                ],
+       "right": [images.spacesuit_right_shadow, images.spacesuit_right_1_shadow,
+                 images.spacesuit_right_2_shadow,
+                 images.spacesuit_right_3_shadow, images.spacesuit_right_3_shadow
+                 ],
+       "up": [images.spacesuit_back_shadow, images.spacesuit_back_1_shadow,
+              images.spacesuit_back_2_shadow, images.spacesuit_back_3_shadow,
+              images.spacesuit_back_3_shadow
+              ],
+       "down": [images.spacesuit_front_shadow, images.spacesuit_front_1_shadow,
+                images.spacesuit_front_2_shadow, images.spacesuit_front_3_shadow,
+                images.spacesuit_front_3_shadow
+                ]
+}
+
+player_image_shadow = PLAYER_SHADOW["down"][0]
+
+PILLARS = [
+    images.pillar, images.pillar_95, images.pillar_80, images.pillar_60, images.pillar_50
+]
+
+wall_transparency_frame = 0
+
+BLACK = (0, 0, 0)
+BLUE = (0, 155, 255)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (128, 0, 0)
+
 ############
 ##  MAP  ##
 ############
@@ -514,60 +548,7 @@ def game_loop():
         player_offset_y = 1 - (0.25 * player_frame)
     if player_direction == "down" and player_frame > 0:
         player_offset_y = -1 + (0.25 * player_frame)
-
-############
-##EXPLORER##
-############
-
-def draw():
-    global room_height, room_width, room_map
-    generate_map()
-    screen.clear()
-    # room_map[2][4] = 7
-    # room_map[2][6] = 6
-    # room_map[1][1] = 8
-    # room_map[1][2] = 9
-    # room_map[1][8] = 12
-    # room_map[1][9] = 9
-
-
-    for y in range(room_height):
-        for x in range(room_width):
-            if room_map[y][x] != 255:
-                image_to_draw = objects[room_map[y][x]][0]
-                screen.blit(image_to_draw, #TOD0: investigate this method
-                    (top_left_x + (x * 30),
-                    top_left_y + (y * 30) - image_to_draw.get_height()))
-            if player_y == y:
-                image_to_draw = PLAYER[player_direction][player_frame]
-                screen.blit(image_to_draw,
-                    (top_left_x + (player_x * 30) + (player_offset_x * 30),
-                    top_left_y + (player_y * 30) + (player_offset_y * 30)
-                    - image_to_draw.get_height()))
-
-# def movement():
-#     global current_room
-#     old_room = current_room
-#
-#     if keyboard.left:
-#         current_room -= 1
-#     if keyboard.right:
-#         current_room += 1
-#     if keyboard.up:
-#         current_room -= MAP_WIDTH
-#     if keyboard.down:
-#         current_room += MAP_WIDTH
-#
-#     if current_room > 50:
-#         current_room = 50
-#     if current_room < 1:
-#         current_room = 1
-#
-#     if current_room != old_room:
-#         print("Enteringroom:" + str(current_room))
-#
-# clock.schedule_interval(movement, 0.1)
-
+ 
 ###########
 ## START ##
 ###########

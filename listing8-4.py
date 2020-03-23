@@ -46,6 +46,40 @@ player_frame = 0
 player_image = PLAYER[player_direction][player_frame]
 player_offset_x, player_offset_y = 0, 0
 
+PLAYER_SHADOW = {
+       "left": [images.spacesuit_left_shadow, images.spacesuit_left_1_shadow,
+                images.spacesuit_left_2_shadow, images.spacesuit_left_3_shadow,
+                images.spacesuit_left_3_shadow
+                ],
+       "right": [images.spacesuit_right_shadow, images.spacesuit_right_1_shadow,
+                 images.spacesuit_right_2_shadow,
+                 images.spacesuit_right_3_shadow, images.spacesuit_right_3_shadow
+                 ],
+       "up": [images.spacesuit_back_shadow, images.spacesuit_back_1_shadow,
+              images.spacesuit_back_2_shadow, images.spacesuit_back_3_shadow,
+              images.spacesuit_back_3_shadow
+              ],
+       "down": [images.spacesuit_front_shadow, images.spacesuit_front_1_shadow,
+                images.spacesuit_front_2_shadow, images.spacesuit_front_3_shadow,
+                images.spacesuit_front_3_shadow
+                ]
+}
+
+player_image_shadow = PLAYER_SHADOW["down"][0]
+
+PILLARS = [
+    images.pillar, images.pillar_95, images.pillar_80, images.pillar_60, images.pillar_50
+]
+
+wall_transparency_frame = 0
+
+BLACK = (0, 0, 0)
+BLUE = (0, 155, 255)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (128, 0, 0)
+
 ############
 ##  MAP  ##
 ############
@@ -515,61 +549,94 @@ def game_loop():
     if player_direction == "down" and player_frame > 0:
         player_offset_y = -1 + (0.25 * player_frame)
 
-############
-##EXPLORER##
-############
+#############
+## DISPLAY ##
+#############
+
+def draw_image(image, y, x):
+    screen.blit(
+        image, (top_left_x + (x * TILE_SIZE), top_left_y + (y * TILE_SIZE) - image.get_height())
+    )
+
+def draw_shadow(image, y, x):
+    screen.blit(
+        image,
+        (top_left_x + (x * TILE_SIZE),
+         top_left_y + (y * TILE_SIZE))
+    )
+
+def draw_player():
+    player_image = PLAYER[player_direction][player_frame]
+    draw_image(player_image, player_y + player_offset_y,
+        player_x + player_offset_x)
+    player_image_shadow = PLAYER_SHADOW[player_direction][player_frame]
+    draw_shadow(player_image_shadow, player_y + player_offset_y,
+        player_x + player_offset_x)
 
 def draw():
-    global room_height, room_width, room_map
-    generate_map()
-    screen.clear()
-    # room_map[2][4] = 7
-    # room_map[2][6] = 6
-    # room_map[1][1] = 8
-    # room_map[1][2] = 9
-    # room_map[1][8] = 12
-    # room_map[1][9] = 9
+    if game_over:
+        return
 
+    #Clear the game arena aren
+    box = Rect((0, 150), (800, 600))
+    screen.draw.filled_rect(box, RED)
+    box = Rect ((0,0), (800, top_left_y + (room_height - 1)* 30))
+    screen.surface.set_clip(box)
+    floor_type = get_floor_type()
+
+    for y in range(room_height): # Lay down floor tiles, then items on floor
+        for x in range(room_width):
+            draw_image(objects[floor_type][0], y, x)
+            #Next line enables shadows to fall on top of objects on floor
+            if room_map[y][x] in items_player_may_stand_on:
+                draw_image(objects[room_map[y][x]][0], y, x)
+
+    #Pressure pad in room 26 is added here, so props can go on top of it.
+    if current_room == 26:
+        draw_image(objects[39][0], 8, 2)
+        image_on_pad = room_map[8][2]
+        if image_on_pad > 0:
+            draw_image(objects[image_on_pad][0], 8, 2)
 
     for y in range(room_height):
         for x in range(room_width):
-            if room_map[y][x] != 255:
-                image_to_draw = objects[room_map[y][x]][0]
-                screen.blit(image_to_draw, #TOD0: investigate this method
-                    (top_left_x + (x * 30),
-                    top_left_y + (y * 30) - image_to_draw.get_height()))
-            if player_y == y:
-                image_to_draw = PLAYER[player_direction][player_frame]
-                screen.blit(image_to_draw,
-                    (top_left_x + (player_x * 30) + (player_offset_x * 30),
-                    top_left_y + (player_y * 30) + (player_offset_y * 30)
-                    - image_to_draw.get_height()))
+            item_here = room_map[y][x]
+            #Player cannot walk on 255: it marks spaces used by wide objects
+            if item_here not in items_player_may_stand_on + [255]:
+                image = objects[item_here][0]
 
-# def movement():
-#     global current_room
-#     old_room = current_room
-#
-#     if keyboard.left:
-#         current_room -= 1
-#     if keyboard.right:
-#         current_room += 1
-#     if keyboard.up:
-#         current_room -= MAP_WIDTH
-#     if keyboard.down:
-#         current_room += MAP_WIDTH
-#
-#     if current_room > 50:
-#         current_room = 50
-#     if current_room < 1:
-#         current_room = 1
-#
-#     if current_room != old_room:
-#         print("Enteringroom:" + str(current_room))
-#
-# clock.schedule_interval(movement, 0.1)
+                if (current_room in outdoor_rooms
+                    and y == room_height -1
+                    and room_map[y][x] == 1) or \
+                    (current_room not in outdoor_rooms
+                    and y == room_height -1
+                    and room_map[y][x] == 1
+                    and x > 0
+                    and x < room_width - 1):
+                    #Add transparent wall image in the front row
+                    image = PILLARS[wall_transparency_frame]
+
+                draw_image(image, y, x)
+
+                if objects[item_here][1] is not None: # If object has a shadow
+                    shadow_image = objects[item_here][1]
+                    #if shadow might need horizintal tiling
+                    if shadow_image in [images.half_shadow, images.full_shadow]:
+                        shadow_width = int(image.get_width() / TILE_SIZE)
+                        #Use shadow across width of object
+                        for z in range(0, shadow_width):
+                            draw_shadow(shadow_image, y, x+z)
+                    else:
+                        draw_shadow(shadow_image, y, x)
+
+        if (player_y == y):
+            draw_player()
+
+    screen.surface.set_clip(None)
 
 ###########
 ## START ##
 ###########
 
 clock.schedule_interval(game_loop, 0.03)
+generate_map()
