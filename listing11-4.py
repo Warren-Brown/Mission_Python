@@ -1084,6 +1084,18 @@ def do_door_animation():
     else:
         clock.schedule(do_door_animation, 0.15)
 
+def shut_engineering_door():
+    global current_room, door_room_number, props
+    props[25][0] = 32 # Door from room 32 to the engineering bay
+    props[26][0] = 27 # Door inside engineering bay
+    generate_map() # Add door to room_mapp for if in affected room
+    if current_room == 27:
+        close_door(26)
+    if current_room == 32:
+        close_door(25)
+    show_text("The computer tells you the doors are closed.", 1)
+    sounds.say_doors_closed.play()
+
 ###########
 ## START ##
 ###########
