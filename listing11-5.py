@@ -578,6 +578,17 @@ def game_loop():
     if keyboard.u:
         use_object()
 
+    ## Teleporter for testing
+    ## Remove this section for the real game
+    if keyboard.x:
+            current_room = int(input("Enter a room number:"))
+            player_x = 2
+            player_y = 2
+            generate_map()
+            start_room()
+            sounds.teleport.play()
+    ## Teleport section ends
+
     #If the player is standing somewhere they shouldn't, move them back.
     #Keep the 2 comments below - you'll need them later
     if room_map[player_y][player_x] not in items_player_may_stand_on:
@@ -1056,7 +1067,7 @@ def open_door(opening_door_number):
 
 def close_door(closing_door_number):
     global door_frames, door_shadow_frames
-    global door_frames_number, door_object_number, player_y
+    global door_frame_number, door_object_number, player_y
     door_frames = [images.door4, images.door3, images.door2,
                     images.door1, images.door]
 
@@ -1075,14 +1086,28 @@ def close_door(closing_door_number):
 def do_door_animation():
     global door_frames, door_frame_number, door_object_number, objects
     objects[door_object_number][0] = door_frames[door_frame_number]
-    objects[door_frame_number][1] = door_shadow_frames[door_frame_number]
+    objects[door_object_number][1] = door_shadow_frames[door_frame_number]
     door_frame_number += 1
     if door_frame_number == 5:
         if door_frames[-1] == images.floor:
             props[door_object_number][0] = 0 # remove door from props list
-            generate_map()
+            # Regenerate room map from the props
+            # to put the door in the room if required
+        generate_map()
     else:
         clock.schedule(do_door_animation, 0.15)
+
+def shut_engineering_door():
+    global current_room, door_room_number, props
+    props[25][0] = 32 # Door from room 32 to the engineering bay
+    props[26][0] = 27 # Door inside engineering bay
+    generate_map() # Add door to room_map for if in affected room
+    if current_room == 27:
+        close_door(26)
+    if current_room == 32:
+        close_door(25)
+    show_text("The computer tells you the doors are closed.", 1)
+    sounds.say_doors_closed.play()
 
 ###########
 ## START ##
