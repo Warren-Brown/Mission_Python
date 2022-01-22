@@ -467,7 +467,11 @@ def generate_map():
 #############
 
 def start_room():
+    global airlock_door_frame
     show_text("You are here: " + room_name, 0)
+    if current_room == 26: # Room with self-shutting airlock door
+        airlock_door_frame = 0
+        clock.schedule_interval(door_in_room_26, 0.05)
 
 def game_loop():
     global player_x, player_y, current_room
