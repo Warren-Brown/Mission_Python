@@ -1212,6 +1212,15 @@ hazard_data = {
     48: [[1, 8, 3, 2], [8, 8, 1, 2], [3, 9, 3, 2]]
 }
 
+def deplete_energy(penalty):
+    global energy, game_over
+    if game_over:
+        return # Don't sap energy when they're already dead
+    energy = energy - penalty
+    draw_energy_air()
+    if energy < 1:
+        end_the_game("You're out of energy!")
+
 ###########
 ## START ##
 ###########
