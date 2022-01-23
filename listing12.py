@@ -462,6 +462,10 @@ def generate_map():
             for tile_number in range(1, image_width_in_tiles):
                 room_map[prop_y][prop_x + tile_number] = 255
 
+    hazard_map = [] # empty list
+    for y in range(room_height):
+        hazard_map.append([0] * room_width)
+
 #############
 ##GAME LOOP##
 #############
@@ -525,7 +529,7 @@ def game_loop():
 
     #check for exiting the room
     if player_x == room_width: #through door on RIGHT
-        #clock.unscheduled(hazard_move)
+        clock.unschedule(hazard_move)
         current_room += 1
         generate_map()
         player_x = 0 #enter at right
@@ -535,7 +539,7 @@ def game_loop():
         return
 
     if player_x == -1: #through door on LEFT
-        #clock.unscheduled(hazard_move)
+        clock.unschedule(hazard_move)
         current_room -= 1
         generate_map()
         player_x = room_width - 1 #enter at right
@@ -545,7 +549,7 @@ def game_loop():
         return
 
     if player_y == room_height: #through door on BOTTOM
-        #clock.unscheduled(hazard_move)
+        clock.unschedule(hazard_move)
         current_room += MAP_WIDTH
         generate_map()
         player_y = 0 #enter at top
@@ -555,7 +559,7 @@ def game_loop():
         return
 
     if player_y == -1: #through door at TOP
-        #clock.unscheduled(hazard_move)
+        clock.unschedule(hazard_move)
         current_room -= MAP_WIDTH
         generate_map()
         player_y = room_height -1 #enter at bottom
@@ -1231,6 +1235,73 @@ def hazard_start():
             hazard_x = hazard[1]
             hazard_map[hazard_y][hazard_x] = 49 + (current_room % 3)
             clock.schedule_interval(hazard_move, 0.15)
+
+def hazard_move():
+    global current_room_hazards_list, hazard_data, hazard_map
+    global old_player_x, old_player_y
+
+    if game_over:
+        return
+
+    for hazard in current_room_hazards_list:
+        hazard_y = hazard[0]
+        hazard_x = hazard[1]
+        hazard_direction = hazard[2]
+
+        old_hazard_x = hazard_x
+        old_hazard_y = hazard_y
+        hazard_map[old_hazard_y][old_hazard_x] = 0
+
+        if hazard_direction == 1: # up
+            hazard_y -= 1
+        if hazard_direction == 2: # right
+            hazard_x += 1
+        if hazard_direction == 3: # down
+            hazard_y += 1
+        if hazard_direction == 4: # left
+            hazard_x -= 1
+
+        hazard_should_bounce = False
+
+        if (hazard_y == player_y and hazard_x == player_x) or \
+            (hazard_y == from_player_y and hazard_x == from_player_x
+            and player_frame > 0):
+            sounds.ouch.play()
+            deplete_energy(10)
+            hazard_should_bounce = True
+
+        # Stop hazard going out of the doors
+        if hazard_x == room_width:
+            hazard_should_bounce = True
+            hazard_x = room_width - 1
+        if hazard_x == -1:
+            hazard_should_bounce = True
+            hazard_x = 0
+        if hazard_y == room_height:
+            hazard_should_bounce = True
+            hazard_y = room_height - 1
+        if hazard_y == -1:
+            hazard_should_bounce = True
+            hazard_y = 0
+
+        # Stop when hazard hits scenery or another hazard.
+        if room_map[hazard_y][hazard_x] not in items_player_may_stand_on \
+            or hazard_map[hazard_y][hazard_x] != 0:
+            hazard_should_bounce = True
+
+        if hazard_should_bounce:
+            hazard_y = old_hazard_y # Move back to last valid position.
+            hazard_x = old_hazard_x
+            hazard_direction += hazard[3]
+
+            if hazard_direction > 4:
+                hazard_direction -= 4
+            if hazard_direction < 1:
+                hazard_direction += 4
+            hazard[2] = hazard_direction
+        hazard_map[hazard_y][hazard_x] = 49 + (current_room % 3)
+        hazard[0] = hazard_y
+        hazard[1] = hazard_x
 
 ###########
 ## START ##
