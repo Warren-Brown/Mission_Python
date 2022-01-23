@@ -472,6 +472,7 @@ def start_room():
     if current_room == 26: # Room with self-shutting airlock door
         airlock_door_frame = 0
         clock.schedule_interval(door_in_room_26, 0.05)
+    hazard_start()
 
 def game_loop():
     global player_x, player_y, current_room
@@ -1220,6 +1221,16 @@ def deplete_energy(penalty):
     draw_energy_air()
     if energy < 1:
         end_the_game("You're out of energy!")
+
+def hazard_start():
+    global current_room_hazards_list, hazard_map
+    if current_room in hazard_data.keys():
+        current_room_hazards_list = hazard_data[current_room]
+        for hazard in current_room_hazards_list:
+            hazard_y = hazard[0]
+            hazard_x = hazard[1]
+            hazard_map[hazard_y][hazard_x] = 49 + (current_room % 3)
+            clock.schedule_interval(hazard_move, 0.15)
 
 ###########
 ## START ##
