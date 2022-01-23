@@ -1204,3 +1204,7 @@ generate_map()
 clock.schedule_interval(game_loop, 0.03)
 clock.schedule_interval(adjust_wall_transparency, 0.05)
 clock.schedule_unique(display_inventory, 1)
+clock.schedule_unique(draw_energy_air, 0.5)
+clock.schedule_unique(alarm, 10)
+# A higher number below gives a longer time limit
+clock.schedule_interval(air_countdown, 5)
