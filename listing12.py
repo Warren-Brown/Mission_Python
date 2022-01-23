@@ -1168,6 +1168,34 @@ def draw_energy_air():
         box = Rect((250, 765), (energy, 20))
         screen.draw.filled_rect(box, YELLOW) # Draw new energy bar
 
+def end_the_game(reason):
+    global game_over
+    show_text(reason, 1)
+    game_over = True
+    sounds.say_mission_fail.play()
+    sounds.gameover.play()
+    screen.draw.text("GAME OVER", (120, 400), color="white",
+                    fontsize = 128, shadow = (1, 1), scolor = "black")
+
+def air_countdown():
+    global air, game_over
+    if game_over:
+        return # Don't sap air when they're dead
+    air -= 1
+    if air == 20:
+        sounds.say_air_low.play()
+    if air == 10:
+        sounds.say_act_now.play()
+    draw_energy_air()
+    if air < 1:
+        end_the_game("You're out of air!")
+
+def alarm():
+    show_text("Air is running out, " + PLAYER_NAME
+            + "! Get to safety, then radio for help!", 1)
+    sounds.alarm.play(3)
+    sounds.say_breach.play()
+
 ###########
 ## START ##
 ###########
