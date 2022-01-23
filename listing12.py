@@ -599,12 +599,14 @@ def game_loop():
     ## Teleport section ends
 
     #If the player is standing somewhere they shouldn't, move them back.
-    #Keep the 2 comments below - you'll need them later
-    if room_map[player_y][player_x] not in items_player_may_stand_on:
-    #       or hazard_map[player_y][player_x] != 0:
+    if room_map[player_y][player_x] not in items_player_may_stand_on \
+          or hazard_map[player_y][player_x] != 0:
         player_x = old_player_x
         player_y = old_player_y
         player_frame = 0
+
+    if room_map[player_y][player_x] == 48: # toxic floor
+        deplete_energy(1)
 
     if player_direction == "right" and player_frame > 0:
         player_offset_x = -1 + (0.25 * player_frame)
@@ -694,6 +696,10 @@ def draw():
                             draw_shadow(shadow_image, y, x+z)
                     else:
                         draw_shadow(shadow_image, y, x)
+
+            hazard_here = hazard_map[y][x]
+            if hazard_here != 0: # If there's a hazard at this position
+                draw_image(objects[hazard_here][0], y, x)
 
         if (player_y == y):
             draw_player()
